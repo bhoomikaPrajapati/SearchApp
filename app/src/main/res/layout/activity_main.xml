@@ -56,8 +56,6 @@
                 android:visibility="gone" />
 
 
-
-
         </RelativeLayout>
 
         <View
