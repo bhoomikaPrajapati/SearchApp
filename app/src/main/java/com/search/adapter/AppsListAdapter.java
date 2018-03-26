@@ -19,15 +19,18 @@ import java.util.List;
 
 public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataViewHolder, AppList> {
 
-    private List<AppList> appListList;
-    private List<AppList> tempAppList;
+    private List<AppList> appLists;
+    private List<AppList> tempAppListNew;
+    
     private Context context;
 
 
-    public AppsListAdapter(List<AppList> appListList, Context context) {
-        super(appListList);
-        this.appListList = appListList;
-        this.tempAppList=appListList;
+    public AppsListAdapter(List<AppList> appLists, Context context) {
+        super(appLists);
+        this.appLists = appLists;
+        this.tempAppListNew=appLists;
+        
+        
         this.context = context;
     }
 
@@ -39,7 +42,7 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
 
     @Override
     public void onBindViewHolder(AppsListAdapter.DataViewHolder holder, int position) {
-        AppList appList = appListList.get(position);
+        AppList appList = tempAppListNew.get(position);
         holder.tvAppName.setText(appList.getApp_name());
         holder.ivAppIcon.setImageDrawable(appList.getApp_icon());
 
@@ -70,12 +73,12 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
                 List<AppList> mSearchedList = new ArrayList<>();
 
                 if (charSequence == null || charSequence.length() == 0) {
-                    mFilterResults.values = tempAppList;
-                    mFilterResults.count = tempAppList.size();
+                    mFilterResults.values = appLists;
+                    mFilterResults.count = appLists.size();
                 } else {
 
-                    if (tempAppList != null && tempAppList.size() > 0) {
-                        for (final AppList mDataBean : tempAppList) {
+                    if (appLists != null && appLists.size() > 0) {
+                        for (final AppList mDataBean : appLists) {
                             if (mDataBean.getApp_name().toLowerCase().contains(charSequence.toString()) || mDataBean.getApp_name().toLowerCase().contains(charSequence.toString()))
                                 mSearchedList.add(mDataBean);
                         }
@@ -92,7 +95,7 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
             @Override
             protected void publishResults(CharSequence charSequence,
                                           FilterResults results) {
-                appListList = (ArrayList <AppList>) results.values;
+                tempAppListNew = (ArrayList <AppList>) results.values;
                 notifyDataSetChanged();
             }
         };
@@ -100,7 +103,7 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
 
     @Override
     public int getItemCount() {
-        return appListList == null ? 0 : appListList.size();
+        return tempAppListNew == null ? 0 : tempAppListNew.size();
     }
 
 }
