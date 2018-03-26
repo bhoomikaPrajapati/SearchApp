@@ -10,6 +10,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -31,7 +32,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private EditText etSearch;
     private AppsListAdapter mAppsListAdapter;
     private List<AppList> mAppListArrayList = new ArrayList<>();
-
+    private List<AppList> mAppTempListArrayList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,16 +74,16 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
             @Override
             public void afterTextChanged(Editable s) {
-                mAppsListAdapter.getFilter().filter(s);
-                if(mAppListArrayList.size()==0)
-                {
-                    tvNotFoundApp.setVisibility(View.VISIBLE);
-                    tvNotFoundApp.setText("No Apps found matching"+"\"" +s+ "\"");
+                mAppListArrayList.clear();
+
+                if (s.length() == 0) {
+                    mAppListArrayList.addAll(mAppTempListArrayList);
+                } else {
+                    mAppListArrayList.addAll(filter(mAppTempListArrayList, s.toString()));
                 }
-                else {
-                    tvNotFoundApp.setVisibility(View.GONE);
-                }
+
                 mAppsListAdapter.notifyDataSetChanged();
+                rvAllApp.scrollToPosition(0);
 
             }
         });
@@ -122,6 +123,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     appList.setApp_icon(app_drawable);
                     appList.setApp_package_name(package_name);
                     mAppListArrayList.add(appList);
+                    mAppTempListArrayList.add(appList);
                     mAppsListAdapter.notifyDataSetChanged();
 
 
@@ -135,6 +137,35 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
 
 
+    }
+
+    private ArrayList<AppList> filter
+            (List<AppList> models, String query) {
+
+        ArrayList<AppList> tempArrayList = new ArrayList<>();
+
+        query = query.toLowerCase();
+
+
+        for (AppList model : models) {
+            if (model != null) {
+                String text = model.getApp_name().toLowerCase();
+
+                if (text.contains(query)) {
+                    tempArrayList.add(model);
+                }
+            }
+        }
+
+      //  tempArrayList.add(null);
+        if (tempArrayList.size() == 0) {
+            tvNotFoundApp.setVisibility(View.VISIBLE);
+        } else {
+            tvNotFoundApp.setVisibility(View.GONE);
+
+        }
+
+        return tempArrayList;
     }
 
 
