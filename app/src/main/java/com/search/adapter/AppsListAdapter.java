@@ -4,23 +4,18 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.search.R;
 import com.search.customview.BaseRecyclerAdapter;
 import com.search.model.AppList;
-
-
-import java.util.ArrayList;
 import java.util.List;
 
 
 public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataViewHolder, AppList> {
 
     private List<AppList> appLists;
-
     private Context context;
 
 
@@ -58,7 +53,6 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
             tvAppName=(TextView) itemView.findViewById(R.id.tvAppName);
         }
     }
-
 
     @Override
     public int getItemCount() {

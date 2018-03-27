@@ -11,7 +11,6 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -45,12 +44,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         tvNotFoundApp = (TextView) findViewById(R.id.tvNotFoundApp);
         tvSearchMoreApp = (TextView) findViewById(R.id.tvSearchMoreApp);
         rvAllApp = (RecyclerView) findViewById(R.id.rvAppList);
-        etSearch=(EditText) findViewById(R.id.etSearch);
+        etSearch = (EditText) findViewById(R.id.etSearch);
 
 
         rvAllApp.setLayoutManager(new GridLayoutManager(this, 4));
 
-        mAppsListAdapter = (AppsListAdapter) new AppsListAdapter(mAppListArrayList,this).setRecycleOnItemClickListener(
+        mAppsListAdapter = (AppsListAdapter) new AppsListAdapter(mAppListArrayList, this).setRecycleOnItemClickListener(
                 mRecycleOnItemClickListener);
         rvAllApp.setAdapter(mAppsListAdapter);
         setAppData();
@@ -94,7 +93,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         @Override
         public void onItemClick(View view, int position) {
             Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage(mAppListArrayList.get(position).getApp_package_name());
-            startActivity( LaunchIntent );
+            startActivity(LaunchIntent);
         }
     };
 
@@ -157,9 +156,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             }
         }
 
-      //  tempArrayList.add(null);
+        //  tempArrayList.add(null);
         if (tempArrayList.size() == 0) {
             tvNotFoundApp.setVisibility(View.VISIBLE);
+            tvNotFoundApp.setText("No Apps found matching " + "\"" + query + "\"");
+
         } else {
             tvNotFoundApp.setVisibility(View.GONE);
 
@@ -171,8 +172,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        Intent i = new Intent(android.content.Intent.ACTION_VIEW);
-        i.setData(Uri.parse("https://play.google.com/store/apps/details?id=my packagename "));
-        startActivity(i);
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+
+        //Copy App URL from Google Play Store.
+        intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com."+etSearch.getText().toString().trim()));
+
+        startActivity(intent);
     }
 }
