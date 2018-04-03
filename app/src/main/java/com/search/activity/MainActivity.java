@@ -1,5 +1,7 @@
 package com.search.activity;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -11,8 +13,11 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 
+import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.search.R;
@@ -29,6 +34,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private TextView tvSearchMoreApp;
     private RecyclerView rvAllApp;
     private EditText etSearch;
+    private ImageView ivClose;
     private AppsListAdapter mAppsListAdapter;
     private List<AppList> mAppListArrayList = new ArrayList<>();
     private List<AppList> mAppTempListArrayList = new ArrayList<>();
@@ -45,6 +51,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         tvSearchMoreApp = (TextView) findViewById(R.id.tvSearchMoreApp);
         rvAllApp = (RecyclerView) findViewById(R.id.rvAppList);
         etSearch = (EditText) findViewById(R.id.etSearch);
+        ivClose=(ImageView) findViewById(R.id.ivClose);
 
 
         rvAllApp.setLayoutManager(new GridLayoutManager(this, 4));
@@ -60,6 +67,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
         tvSearchMoreApp.setOnClickListener(this);
+        ivClose.setOnClickListener(this);
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence cs, int start, int count, int after) {
@@ -77,8 +85,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
                 if (s.length() == 0) {
                     mAppListArrayList.addAll(mAppTempListArrayList);
+                    ivClose.setVisibility(View.GONE);
                 } else {
                     mAppListArrayList.addAll(filter(mAppTempListArrayList, s.toString()));
+                    ivClose.setVisibility(View.VISIBLE);
                 }
 
                 mAppsListAdapter.notifyDataSetChanged();
@@ -92,6 +102,9 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private BaseRecyclerAdapter.RecycleOnItemClickListener mRecycleOnItemClickListener = new BaseRecyclerAdapter.RecycleOnItemClickListener() {
         @Override
         public void onItemClick(View view, int position) {
+            dismissKeyboard(MainActivity.this);
+            Log.e("playstore",""+mAppListArrayList.get(position).getApp_package_name());
+
             Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage(mAppListArrayList.get(position).getApp_package_name());
             startActivity(LaunchIntent);
         }
@@ -172,12 +185,26 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
+        if(view.getId()==R.id.ivClose)
+        {
+            etSearch.getText().clear();
+        }
+        else if(view.getId()==R.id.tvSearchMoreApp)
+        {
+            /*com.android.vending*/
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com."+etSearch.getText().toString().trim()));
+            startActivity(intent);
+        }
 
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-
-        //Copy App URL from Google Play Store.
-        intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com."+etSearch.getText().toString().trim()));
-
-        startActivity(intent);
     }
+
+    public void dismissKeyboard(Activity activity) {
+        InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (null != activity.getCurrentFocus())
+            imm.hideSoftInputFromWindow(activity.getCurrentFocus()
+                    .getApplicationWindowToken(), 0);
+    }
+
+
 }

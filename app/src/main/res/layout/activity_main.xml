@@ -21,36 +21,53 @@
             android:layout_height="wrap_content"
             android:elevation="@dimen/_10sdp">
 
-            <EditText
-                android:id="@+id/etSearch"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
                 android:background="@android:color/white"
-                android:hint="Search Apps.."
-                android:padding="@dimen/_12sdp"
-                android:textColor="@color/colorPrimaryDark"
-                android:textColorHint="@color/colorPrimaryDark"
-                android:textSize="@dimen/_12sdp" />
+                android:layout_height="match_parent">
+
+                <EditText
+                    android:id="@+id/etSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white"
+                    android:hint="Search Apps.."
+                    android:padding="@dimen/_12sdp"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:textColorHint="@color/colorPrimaryDark"
+                    android:textSize="@dimen/_12sdp" />
+
+                <ImageView
+                    android:id="@+id/ivClose"
+                    android:layout_width="wrap_content"
+                    android:src="@drawable/ic_close"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:padding="12dp"
+                    android:visibility="gone"
+                    android:layout_height="wrap_content" />
+
+            </RelativeLayout>
         </android.support.v7.widget.CardView>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_gravity="center"
             android:background="@android:color/white"
-            android:layout_gravity="center">
+            android:gravity="center">
 
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/rvAppList"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="vertical"
-                android:scrollbarThumbVertical="@android:color/darker_gray"
-                android:gravity="center"
-                android:padding="@dimen/_5sdp"
-                android:overScrollMode="never"
                 android:layout_centerHorizontal="true"
+                android:gravity="center"
+                android:overScrollMode="never"
+                android:padding="@dimen/_5sdp"
+                android:scrollbarThumbVertical="@android:color/darker_gray"
+                android:scrollbars="vertical"
                 tools:listitem="@layout/adapter_apps_list" />
 
             <TextView
@@ -59,17 +76,15 @@
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
                 android:gravity="center"
-                android:paddingTop="@dimen/_20sdp"
                 android:paddingBottom="@dimen/_20sdp"
-
+                android:paddingTop="@dimen/_20sdp"
                 android:text="No Apps found matching"
                 android:textColor="@color/colorPrimaryDark"
                 android:visibility="gone" />
 
 
-
-
         </RelativeLayout>
+
         <View
             android:id="@+id/view"
             android:layout_width="match_parent"
