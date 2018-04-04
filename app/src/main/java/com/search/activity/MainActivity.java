@@ -191,10 +191,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
         else if(view.getId()==R.id.tvSearchMoreApp)
         {
-            /*com.android.vending*/
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=com."+etSearch.getText().toString().trim()));
-            startActivity(intent);
+            Intent goToMarket = new Intent(Intent.ACTION_VIEW).setData(Uri.parse("market://search?q="+etSearch.getText().toString().trim()));
+            startActivity(goToMarket);
         }
 
     }
