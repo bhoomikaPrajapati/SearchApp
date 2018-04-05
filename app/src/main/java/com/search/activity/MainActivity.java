@@ -124,12 +124,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
                 Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
 
-                boolean same = false;
+             /*   boolean same = false;
                 for (int i = 0; i < mAppListArrayList.size(); i++) {
                     if (package_name.equals(mAppListArrayList.get(i).getApp_name()))
                         same = true;
                 }
-                if (!same) {
+                if (!same) {*/
                     AppList appList = new AppList();
                     appList.setApp_name(app_name);
                     appList.setApp_icon(app_drawable);
@@ -139,7 +139,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     mAppsListAdapter.notifyDataSetChanged();
 
 
-                }
+            //    }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -151,25 +151,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     }
 
-    private ArrayList<AppList> filter
-            (List<AppList> models, String query) {
+    private ArrayList<AppList> filter(List<AppList> models, String query) {
 
         ArrayList<AppList> tempArrayList = new ArrayList<>();
-
         query = query.toLowerCase();
 
 
         for (AppList model : models) {
             if (model != null) {
                 String text = model.getApp_name().toLowerCase();
-
                 if (text.contains(query)) {
                     tempArrayList.add(model);
                 }
             }
         }
 
-        //  tempArrayList.add(null);
         if (tempArrayList.size() == 0) {
             tvNotFoundApp.setVisibility(View.VISIBLE);
             tvNotFoundApp.setText("No Apps found matching " + "\"" + query + "\"");
