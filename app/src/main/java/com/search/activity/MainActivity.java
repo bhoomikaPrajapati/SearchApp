@@ -1,12 +1,14 @@
 package com.search.activity;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,10 +22,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.search.R;
 import com.search.adapter.AppsListAdapter;
 import com.search.customview.BaseRecyclerAdapter;
+import com.search.filedata.WriteDataToTextFile;
 import com.search.model.AppList;
+import com.search.model.AppListModel;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -35,6 +40,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
+
+    private static final String APP_LIST_FILE = "applist";
 
     private TextView tvNotFoundApp;
     private TextView tvSearchMoreApp;
@@ -53,11 +60,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void initialization() {
-        tvNotFoundApp = (TextView) findViewById(R.id.tvNotFoundApp);
-        tvSearchMoreApp = (TextView) findViewById(R.id.tvSearchMoreApp);
-        rvAllApp = (RecyclerView) findViewById(R.id.rvAppList);
-        etSearch = (EditText) findViewById(R.id.etSearch);
-        ivClose=(ImageView) findViewById(R.id.ivClose);
+        tvNotFoundApp = findViewById(R.id.tvNotFoundApp);
+        tvSearchMoreApp = findViewById(R.id.tvSearchMoreApp);
+        rvAllApp = findViewById(R.id.rvAppList);
+        etSearch = findViewById(R.id.etSearch);
+        ivClose = findViewById(R.id.ivClose);
 
 
         rvAllApp.setLayoutManager(new GridLayoutManager(this, 4));
@@ -65,7 +72,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mAppsListAdapter = (AppsListAdapter) new AppsListAdapter(mAppListArrayList, this).setRecycleOnItemClickListener(
                 mRecycleOnItemClickListener);
         rvAllApp.setAdapter(mAppsListAdapter);
-        setAppData();
+     //   new ReadTextAsync(APP_LIST_FILE).execute();
+
+
+        setAppListData(new Gson().fromJson(readFromFile(), AppListModel.class));
+
+
         setListener();
 
 
@@ -111,7 +123,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         @Override
         public void onItemClick(View view, int position) {
             dismissKeyboard(MainActivity.this);
-            Log.e("playstore",""+mAppListArrayList.get(position).getApp_package_name());
+            Log.e("playstore", "" + mAppListArrayList.get(position).getApp_package_name());
 
             Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage(mAppListArrayList.get(position).getApp_package_name());
             startActivity(LaunchIntent);
@@ -120,6 +132,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
     private void setAppData() {
+
         PackageManager pm = getPackageManager();
         Intent main = new Intent(Intent.ACTION_MAIN, null);
         main.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -132,22 +145,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
                 Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
 
-             /*   boolean same = false;
-                for (int i = 0; i < mAppListArrayList.size(); i++) {
-                    if (package_name.equals(mAppListArrayList.get(i).getApp_name()))
-                        same = true;
-                }
-                if (!same) {*/
-                    AppList appList = new AppList();
-                    appList.setApp_name(app_name);
-                    appList.setApp_icon(app_drawable);
-                    appList.setApp_package_name(package_name);
-                    mAppListArrayList.add(appList);
-                    mAppTempListArrayList.add(appList);
-                    mAppsListAdapter.notifyDataSetChanged();
-
-
-            //    }
+                AppList appList = new AppList();
+                appList.setApp_name(app_name);
+                appList.setApp_icon(app_drawable);
+                appList.setApp_package_name(package_name);
+                mAppListArrayList.add(appList);
+                mAppTempListArrayList.add(appList);
+                mAppsListAdapter.notifyDataSetChanged();
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -155,6 +159,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
         }
+        AppListModel appListModel = new AppListModel();
+        appListModel.setAppListArrayList(mAppListArrayList);
+        String data = new Gson().toJson(appListModel);
+        writeToFile(data);
+
+        //  new WriteDataToTextFile(MainActivity.this, APP_LIST_FILE, appListModel).execute();
 
 
     }
@@ -189,13 +199,10 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        if(view.getId()==R.id.ivClose)
-        {
+        if (view.getId() == R.id.ivClose) {
             etSearch.getText().clear();
-        }
-        else if(view.getId()==R.id.tvSearchMoreApp)
-        {
-            Intent goToMarket = new Intent(Intent.ACTION_VIEW).setData(Uri.parse("market://search?q="+etSearch.getText().toString().trim()));
+        } else if (view.getId() == R.id.tvSearchMoreApp) {
+            Intent goToMarket = new Intent(Intent.ACTION_VIEW).setData(Uri.parse("market://search?q=" + etSearch.getText().toString().trim()));
             startActivity(goToMarket);
         }
 
@@ -214,8 +221,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("config.txt", Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
     }
@@ -228,21 +234,20 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         try {
             InputStream inputStream = this.openFileInput("config.txt");
 
-            if ( inputStream != null ) {
+            if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
                 BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                 String receiveString = "";
                 StringBuilder stringBuilder = new StringBuilder();
 
-                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                while ((receiveString = bufferedReader.readLine()) != null) {
                     stringBuilder.append(receiveString);
                 }
 
                 inputStream.close();
                 ret = stringBuilder.toString();
             }
-        }
-        catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {
             Log.e("login activity", "File not found: " + e.toString());
         } catch (IOException e) {
             Log.e("login activity", "Can not read file: " + e.toString());
@@ -252,4 +257,82 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
 
+    public class ReadTextAsync extends AsyncTask<Void, Void, String> {
+
+        private final String TAG = ReadTextAsync.class.getSimpleName();
+        private final ProgressDialog progressBar;
+
+        private String fileName;
+        private String data;
+
+
+        public ReadTextAsync(String fileName) {
+            this.fileName = fileName;
+            progressBar = new ProgressDialog(MainActivity.this);
+        }
+
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.d("ReadTextAsync", "onPreExecute");
+            progressBar.show();
+        }
+
+        @Override
+        protected String doInBackground(Void... params) {
+            try {
+                InputStream inputStream = openFileInput(fileName + ".txt");
+
+                if (inputStream != null) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                    String receiveString = "";
+                    StringBuilder stringBuilder = new StringBuilder();
+
+                    while ((receiveString = bufferedReader.readLine()) != null) {
+                        stringBuilder.append(receiveString);
+                    }
+
+                    inputStream.close();
+                    data = stringBuilder.toString();
+                }
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "File not found: " + e.toString());
+            } catch (IOException e) {
+                Log.e(TAG, "Can not read file: " + e.toString());
+            } catch (Exception e) {
+                Log.e(TAG, "Exception : " + e.toString());
+            }
+
+            return data;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            super.onPostExecute(result);
+            Log.d("ReadTextAsync", "onPostExecute");
+            if (result != null) {
+                setAppListData(new Gson().fromJson(result, AppListModel.class));
+            } else {
+                setAppData();
+            }
+            progressBar.dismiss();
+
+        }
+    }
+
+    private void setAppListData(AppListModel appListModel) {
+        if (appListModel == null && appListModel.getAppListArrayList() == null && appListModel.getAppListArrayList().size() == 0) {
+            setAppData();
+        } else {
+            mAppListArrayList.clear();
+            mAppTempListArrayList.clear();
+            mAppListArrayList.addAll(appListModel.getAppListArrayList());
+            mAppTempListArrayList.addAll(mAppListArrayList);
+            mAppsListAdapter.notifyDataSetChanged();
+
+        }
+
+    }
 }
