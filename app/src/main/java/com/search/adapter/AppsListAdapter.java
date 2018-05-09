@@ -16,6 +16,8 @@ import com.search.customview.BaseRecyclerAdapter;
 import com.search.model.AppList;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,12 +48,28 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
     public void onBindViewHolder(AppsListAdapter.DataViewHolder holder, int position) {
         AppList appList = appLists.get(position);
         holder.tvAppName.setText(appList.getApp_name());
-        // holder.ivAppIcon.setImageDrawable(appList.getApp_icon());
+       /* // holder.ivAppIcon.setImageDrawable(appList.getApp_icon());
 
 
-        Bitmap bitmap = BitmapFactory.decodeByteArray(appList.getApp_icon(), 0, appList.getApp_icon().length);
+     //   Bitmap bitmap = BitmapFactory.decodeByteArray(appList.getApp_icon(), 0, appList.getApp_icon().length);
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+      //  options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+      //  Bitmap bitmap = BitmapFactory.decodeFile(appList.getApp_name(), options);
+        Bitmap bitmap = BitmapFactory.decodeFile(appList.getApp_name());
         holder.ivAppIcon.setImageBitmap(bitmap);
+*/
 
+        Bitmap bitmap = null;
+        File f = new File(context.getCacheDir()+"/"+appList.getApp_name());
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        try {
+            bitmap = BitmapFactory.decodeStream(new FileInputStream(f), null, options);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        holder.ivAppIcon.setImageBitmap(bitmap);
     }
 
 

@@ -19,6 +19,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+<!--
+        <receiver android:name=".listener.ApplicationBroadcastService">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED"  />
+                <action android:name="android.intent.action.PACKAGE_CHANGED" />
+                <action android:name="android.intent.action.PACKAGE_INSTALL" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>-->
+
+        <receiver
+            android:name=".listener.ApplicationBroadcastService"
+            android:enabled="true"
+            android:priority="0" >
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" >
+                </action>
+                <action android:name="android.intent.action.PACKAGE_REMOVED" >
+                </action>
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
     </application>
+
+
 
 </manifest>

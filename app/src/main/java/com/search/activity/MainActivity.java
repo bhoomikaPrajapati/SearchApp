@@ -3,6 +3,7 @@ package com.search.activity;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -28,12 +29,15 @@ import com.google.gson.Gson;
 import com.search.R;
 import com.search.adapter.AppsListAdapter;
 import com.search.customview.BaseRecyclerAdapter;
+import com.search.listener.ApplicationBroadcastService;
 import com.search.model.AppList;
 import com.search.model.AppListModel;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -53,7 +57,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private AppsListAdapter mAppsListAdapter;
     private List<AppList> mAppListArrayList = new ArrayList<>();
     private List<AppList> mAppTempListArrayList = new ArrayList<>();
-    private SharedPreferences sharedpreferences;
+
 
 
     @Override
@@ -61,10 +65,17 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initialization();
+        ApplicationBroadcastService applicationBroadcastService=new ApplicationBroadcastService();
+
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        intentFilter.addAction(Intent.ACTION_PACKAGE_INSTALL);
+        intentFilter.addDataScheme("package");
+        registerReceiver(applicationBroadcastService, intentFilter);
     }
 
     private void initialization() {
-        sharedpreferences = getSharedPreferences("mypreference", Context.MODE_PRIVATE);
+
         tvNotFoundApp = findViewById(R.id.tvNotFoundApp);
         tvSearchMoreApp = findViewById(R.id.tvSearchMoreApp);
         rvAllApp = findViewById(R.id.rvAppList);
@@ -83,7 +94,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (modelData != null && !modelData.equalsIgnoreCase(""))
             setAppListData(new Gson().fromJson(modelData, AppListModel.class));
         else
-        setAppData();
+            setAppData();
 
         setListener();
 
@@ -150,20 +161,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
                 Bitmap bitmap = ((BitmapDrawable) app_drawable).getBitmap();
 
+                createIconFile(bitmap, app_name);
 
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
+            /*    ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 byte[] byteArray = stream.toByteArray();
                 bitmap.recycle();
-
-
-
-
-
+*/
 
                 AppList appList = new AppList();
                 appList.setApp_name(app_name);
-                appList.setApp_icon(byteArray);
+                //   appList.setApp_icon(byteArray);
                 appList.setApp_package_name(package_name);
                 mAppListArrayList.add(appList);
                 mAppTempListArrayList.add(appList);
@@ -180,6 +189,30 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         String data = new Gson().toJson(appListModel);
         // writeToData(data);
         writeToFile(data);
+
+
+    }
+
+    private void createIconFile(Bitmap bitmap, String filename) {
+        //create a file to write bitmap data
+        File f = new File(getCacheDir(), filename);
+        Log.e("filePath", f.getAbsolutePath());
+        try {
+            f.createNewFile();
+            //Convert bitmap to byte array
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
+            byte[] bitmapdata = bos.toByteArray();
+
+            //write the bytes in file
+            FileOutputStream fos = new FileOutputStream(f);
+            fos.write(bitmapdata);
+            fos.flush();
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
     }
@@ -228,22 +261,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         if (null != activity.getCurrentFocus())
             imm.hideSoftInputFromWindow(activity.getCurrentFocus()
                     .getApplicationWindowToken(), 0);
-    }
-
-
-    private void writeToData(String data) {
-
-        SharedPreferences.Editor editor = sharedpreferences.edit();
-        editor.putString("file", data);
-
-    }
-
-
-    private String readFromData() {
-        String fileData = "";
-        fileData = sharedpreferences.getString("file", "");
-        return fileData;
-
     }
 
 
