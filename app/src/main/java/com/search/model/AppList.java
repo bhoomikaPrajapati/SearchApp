@@ -1,5 +1,6 @@
 package com.search.model;
 
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 
 /**
@@ -11,7 +12,7 @@ public class AppList {
     private int app_id;
     private String app_package_name;
     private String app_name;
-    private Drawable app_icon;
+    private byte[] app_icon;
 
 
     public int getApp_id() {
@@ -38,11 +39,11 @@ public class AppList {
         this.app_name = app_name;
     }
 
-    public Drawable getApp_icon() {
+    public byte[] getApp_icon() {
         return app_icon;
     }
 
-    public void setApp_icon(Drawable app_icon) {
+    public void setApp_icon(byte[] app_icon) {
         this.app_icon = app_icon;
     }
 }

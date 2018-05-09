@@ -1,14 +1,16 @@
 package com.search.activity;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -26,22 +28,22 @@ import com.google.gson.Gson;
 import com.search.R;
 import com.search.adapter.AppsListAdapter;
 import com.search.customview.BaseRecyclerAdapter;
-import com.search.filedata.WriteDataToTextFile;
 import com.search.model.AppList;
 import com.search.model.AppListModel;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends BaseActivity implements View.OnClickListener {
 
-    private static final String APP_LIST_FILE = "applist";
 
     private TextView tvNotFoundApp;
     private TextView tvSearchMoreApp;
@@ -51,6 +53,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private AppsListAdapter mAppsListAdapter;
     private List<AppList> mAppListArrayList = new ArrayList<>();
     private List<AppList> mAppTempListArrayList = new ArrayList<>();
+    private SharedPreferences sharedpreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void initialization() {
+        sharedpreferences = getSharedPreferences("mypreference", Context.MODE_PRIVATE);
         tvNotFoundApp = findViewById(R.id.tvNotFoundApp);
         tvSearchMoreApp = findViewById(R.id.tvSearchMoreApp);
         rvAllApp = findViewById(R.id.rvAppList);
@@ -72,11 +77,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         mAppsListAdapter = (AppsListAdapter) new AppsListAdapter(mAppListArrayList, this).setRecycleOnItemClickListener(
                 mRecycleOnItemClickListener);
         rvAllApp.setAdapter(mAppsListAdapter);
-     //   new ReadTextAsync(APP_LIST_FILE).execute();
 
 
-        setAppListData(new Gson().fromJson(readFromFile(), AppListModel.class));
-
+        String modelData = readFromFile();
+        if (modelData != null && !modelData.equalsIgnoreCase(""))
+            setAppListData(new Gson().fromJson(modelData, AppListModel.class));
+        else
+        setAppData();
 
         setListener();
 
@@ -85,18 +92,15 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private void setListener() {
 
-
         tvSearchMoreApp.setOnClickListener(this);
         ivClose.setOnClickListener(this);
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence cs, int start, int count, int after) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
             }
 
             @Override
@@ -124,7 +128,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         public void onItemClick(View view, int position) {
             dismissKeyboard(MainActivity.this);
             Log.e("playstore", "" + mAppListArrayList.get(position).getApp_package_name());
-
             Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage(mAppListArrayList.get(position).getApp_package_name());
             startActivity(LaunchIntent);
         }
@@ -145,9 +148,22 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                 String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
                 Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
 
+                Bitmap bitmap = ((BitmapDrawable) app_drawable).getBitmap();
+
+
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                byte[] byteArray = stream.toByteArray();
+                bitmap.recycle();
+
+
+
+
+
+
                 AppList appList = new AppList();
                 appList.setApp_name(app_name);
-                appList.setApp_icon(app_drawable);
+                appList.setApp_icon(byteArray);
                 appList.setApp_package_name(package_name);
                 mAppListArrayList.add(appList);
                 mAppTempListArrayList.add(appList);
@@ -162,9 +178,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         AppListModel appListModel = new AppListModel();
         appListModel.setAppListArrayList(mAppListArrayList);
         String data = new Gson().toJson(appListModel);
+        // writeToData(data);
         writeToFile(data);
-
-        //  new WriteDataToTextFile(MainActivity.this, APP_LIST_FILE, appListModel).execute();
 
 
     }
@@ -216,6 +231,36 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
 
+    private void writeToData(String data) {
+
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString("file", data);
+
+    }
+
+
+    private String readFromData() {
+        String fileData = "";
+        fileData = sharedpreferences.getString("file", "");
+        return fileData;
+
+    }
+
+
+    private void setAppListData(AppListModel appListModel) {
+        if (appListModel == null) {
+            setAppData();
+        } else {
+            mAppListArrayList.clear();
+            mAppTempListArrayList.clear();
+            mAppListArrayList.addAll(appListModel.getAppListArrayList());
+            mAppTempListArrayList.addAll(mAppListArrayList);
+            mAppsListAdapter.notifyDataSetChanged();
+
+        }
+
+    }
+
     private void writeToFile(String data) {
         try {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("config.txt", Context.MODE_PRIVATE));
@@ -232,7 +277,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         String ret = "";
 
         try {
-            InputStream inputStream = this.openFileInput("config.txt");
+            InputStream inputStream = openFileInput("config.txt");
 
             if (inputStream != null) {
                 InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
@@ -254,85 +299,5 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
 
         return ret;
-    }
-
-
-    public class ReadTextAsync extends AsyncTask<Void, Void, String> {
-
-        private final String TAG = ReadTextAsync.class.getSimpleName();
-        private final ProgressDialog progressBar;
-
-        private String fileName;
-        private String data;
-
-
-        public ReadTextAsync(String fileName) {
-            this.fileName = fileName;
-            progressBar = new ProgressDialog(MainActivity.this);
-        }
-
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Log.d("ReadTextAsync", "onPreExecute");
-            progressBar.show();
-        }
-
-        @Override
-        protected String doInBackground(Void... params) {
-            try {
-                InputStream inputStream = openFileInput(fileName + ".txt");
-
-                if (inputStream != null) {
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                    String receiveString = "";
-                    StringBuilder stringBuilder = new StringBuilder();
-
-                    while ((receiveString = bufferedReader.readLine()) != null) {
-                        stringBuilder.append(receiveString);
-                    }
-
-                    inputStream.close();
-                    data = stringBuilder.toString();
-                }
-            } catch (FileNotFoundException e) {
-                Log.e(TAG, "File not found: " + e.toString());
-            } catch (IOException e) {
-                Log.e(TAG, "Can not read file: " + e.toString());
-            } catch (Exception e) {
-                Log.e(TAG, "Exception : " + e.toString());
-            }
-
-            return data;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-            Log.d("ReadTextAsync", "onPostExecute");
-            if (result != null) {
-                setAppListData(new Gson().fromJson(result, AppListModel.class));
-            } else {
-                setAppData();
-            }
-            progressBar.dismiss();
-
-        }
-    }
-
-    private void setAppListData(AppListModel appListModel) {
-        if (appListModel == null && appListModel.getAppListArrayList() == null && appListModel.getAppListArrayList().size() == 0) {
-            setAppData();
-        } else {
-            mAppListArrayList.clear();
-            mAppTempListArrayList.clear();
-            mAppListArrayList.addAll(appListModel.getAppListArrayList());
-            mAppTempListArrayList.addAll(mAppListArrayList);
-            mAppsListAdapter.notifyDataSetChanged();
-
-        }
-
     }
 }

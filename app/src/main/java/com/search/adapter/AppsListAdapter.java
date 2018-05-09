@@ -1,6 +1,9 @@
 package com.search.adapter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,8 +11,16 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.search.R;
+import com.search.activity.MainActivity;
 import com.search.customview.BaseRecyclerAdapter;
 import com.search.model.AppList;
+
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.List;
 
 
@@ -21,7 +32,7 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
 
     public AppsListAdapter(List<AppList> appLists, Context context) {
         super(appLists);
-        this.appLists=appLists;
+        this.appLists = appLists;
         this.context = context;
     }
 
@@ -35,7 +46,11 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
     public void onBindViewHolder(AppsListAdapter.DataViewHolder holder, int position) {
         AppList appList = appLists.get(position);
         holder.tvAppName.setText(appList.getApp_name());
-        holder.ivAppIcon.setImageDrawable(appList.getApp_icon());
+        // holder.ivAppIcon.setImageDrawable(appList.getApp_icon());
+
+
+        Bitmap bitmap = BitmapFactory.decodeByteArray(appList.getApp_icon(), 0, appList.getApp_icon().length);
+        holder.ivAppIcon.setImageBitmap(bitmap);
 
     }
 
@@ -49,15 +64,16 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
         public DataViewHolder(View itemView) {
             super(itemView);
             clickableViews(itemView);
-            ivAppIcon=(ImageView) itemView.findViewById(R.id.ivAppIcon);
-            tvAppName=(TextView) itemView.findViewById(R.id.tvAppName);
+            ivAppIcon = (ImageView) itemView.findViewById(R.id.ivAppIcon);
+            tvAppName = (TextView) itemView.findViewById(R.id.tvAppName);
         }
     }
 
     @Override
     public int getItemCount() {
-        return  appLists.size();
+        return appLists.size();
     }
+
 
 }
 

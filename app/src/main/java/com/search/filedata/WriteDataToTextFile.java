@@ -10,11 +10,12 @@ import com.google.gson.Gson;
 
 import com.search.model.AppListModel;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
+
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+
 
 public class WriteDataToTextFile extends AsyncTask<Void, Void, Void> {
 
@@ -50,13 +51,47 @@ public class WriteDataToTextFile extends AsyncTask<Void, Void, Void> {
 
     @TargetApi(Build.VERSION_CODES.KITKAT)
     public void writeToFile() {
-
-
-
+        BufferedWriter wr = null;
         try {
+            // Open the file for writing, without removing its current content.
+            wr = new BufferedWriter(new FileWriter(new File(fileName), true));
+          String  data = new Gson().toJson(appListModel);
+            // Write a sample string to the end of the file.
+            wr.write(data);
+
+            wr.close();
+        }
+        catch(IOException ex) {
+            System.err.println("An IOException was caught!");
+            ex.printStackTrace();
+        }
+      /*  finally {
+            // Close the file.
+            try {
+
+            }
+            catch (IOException ex) {
+                System.err.println("An IOException was caught!");
+                ex.printStackTrace();
+            }
+        }*/
+    }
+
+
+     /*   try {
             String data = "";
-            File path = mContext.getFilesDir();
-            File file = new File(path, fileName + ".txt");
+
+
+
+            File dir = mContext.getFilesDir();
+
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+            dir.getAbsolutePath();
+
+
+            File file = new File(dir, fileName + ".txt");
 
             FileOutputStream stream = new FileOutputStream(file);
 
@@ -70,12 +105,12 @@ public class WriteDataToTextFile extends AsyncTask<Void, Void, Void> {
             Log.e(TAG, "File write failed: " + e.toString());
         }
 
+*/
 
 
 
 
 
-    }
 
 
 }
