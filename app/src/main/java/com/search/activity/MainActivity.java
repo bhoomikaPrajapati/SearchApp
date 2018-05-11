@@ -44,7 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.ByteBuffer;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +59,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private AppsListAdapter mAppsListAdapter;
     private List<AppList> mAppListArrayList = new ArrayList<>();
     private List<AppList> mAppTempListArrayList = new ArrayList<>();
-    private File iconFilePath;
+
 
 
     @Override
@@ -68,7 +68,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         setContentView(R.layout.activity_main);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("MESSAGE"));
-        iconFilePath=getCacheDir();
+
         initialization();
 
     }
@@ -171,15 +171,13 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         main.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> packages = pm.queryIntentActivities(main, 0);
 
-
-
-
-
-            for (ResolveInfo resolve_info : packages) {
+        for (ResolveInfo resolve_info : packages) {
                 try {
                     String package_name = resolve_info.activityInfo.packageName;
                     String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
-                    Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
+                   // Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
+                    Drawable app_drawable = resolve_info.activityInfo.loadIcon(getPackageManager());
+
                     boolean same = false;
                     for (int i = 0; i < mAppListArrayList.size(); i++) {
                         if (package_name.equals(mAppListArrayList.get(i).getApp_package_name()))
@@ -217,7 +215,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private void createIconFile(Bitmap bitmap, String filename) {
         //create a file to write bitmap data
-        File f = new File(iconFilePath, filename);
+        File f = new File(getCacheDir(), filename);
         Log.e("filePath", f.getAbsolutePath());
         try {
             f.createNewFile();
