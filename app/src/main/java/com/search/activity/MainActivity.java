@@ -1,6 +1,7 @@
 package com.search.activity;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -13,6 +14,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -57,21 +59,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     private AppsListAdapter mAppsListAdapter;
     private List<AppList> mAppListArrayList = new ArrayList<>();
     private List<AppList> mAppTempListArrayList = new ArrayList<>();
-
+    private File iconFilePath;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initialization();
-        ApplicationBroadcastService applicationBroadcastService=new ApplicationBroadcastService();
 
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
-        intentFilter.addAction(Intent.ACTION_PACKAGE_INSTALL);
-        intentFilter.addDataScheme("package");
-        registerReceiver(applicationBroadcastService, intentFilter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter("MESSAGE"));
+        iconFilePath=getCacheDir();
+        initialization();
+
     }
 
     private void initialization() {
@@ -100,6 +99,24 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+    }
+
+    /**
+     * Broadcast receiver to update chat screen when user uses application.
+     */
+    private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.e("BroadCast Receiver", "onStart: called");
+            setAppData();
+        }
+    };
+
 
     private void setListener() {
 
@@ -146,56 +163,61 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
 
     private void setAppData() {
-
+        mAppListArrayList.clear();
+        mAppTempListArrayList.clear();
+        clearApplicationData();
         PackageManager pm = getPackageManager();
         Intent main = new Intent(Intent.ACTION_MAIN, null);
         main.addCategory(Intent.CATEGORY_LAUNCHER);
         List<ResolveInfo> packages = pm.queryIntentActivities(main, 0);
 
 
-        for (ResolveInfo resolve_info : packages) {
-            try {
-                String package_name = resolve_info.activityInfo.packageName;
-                String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
-                Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
-
-                Bitmap bitmap = ((BitmapDrawable) app_drawable).getBitmap();
-
-                createIconFile(bitmap, app_name);
 
 
-            /*    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] byteArray = stream.toByteArray();
-                bitmap.recycle();
-*/
 
-                AppList appList = new AppList();
-                appList.setApp_name(app_name);
-                //   appList.setApp_icon(byteArray);
-                appList.setApp_package_name(package_name);
-                mAppListArrayList.add(appList);
-                mAppTempListArrayList.add(appList);
-                mAppsListAdapter.notifyDataSetChanged();
+            for (ResolveInfo resolve_info : packages) {
+                try {
+                    String package_name = resolve_info.activityInfo.packageName;
+                    String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
+                    Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
+                    boolean same = false;
+                    for (int i = 0; i < mAppListArrayList.size(); i++) {
+                        if (package_name.equals(mAppListArrayList.get(i).getApp_package_name()))
+                            same = true;
+                    }
+                    if(package_name.equalsIgnoreCase("com.search")){
+                        same=true;
+                    }
 
-            } catch (Exception e) {
-                e.printStackTrace();
+                    if (!same) {
+                        Bitmap bitmap = ((BitmapDrawable) app_drawable).getBitmap();
+                        createIconFile(bitmap, app_name);
+                        AppList appList = new AppList();
+                        appList.setApp_name(app_name);
+
+                        appList.setApp_package_name(package_name);
+                        mAppListArrayList.add(appList);
+                        mAppTempListArrayList.add(appList);
+                        mAppsListAdapter.notifyDataSetChanged();
+                    }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
             }
+            AppListModel appListModel = new AppListModel();
+            appListModel.setAppListArrayList(mAppListArrayList);
+            String data = new Gson().toJson(appListModel);
+            writeToFile(data);
 
 
         }
-        AppListModel appListModel = new AppListModel();
-        appListModel.setAppListArrayList(mAppListArrayList);
-        String data = new Gson().toJson(appListModel);
-        // writeToData(data);
-        writeToFile(data);
-
-
-    }
 
     private void createIconFile(Bitmap bitmap, String filename) {
         //create a file to write bitmap data
-        File f = new File(getCacheDir(), filename);
+        File f = new File(iconFilePath, filename);
         Log.e("filePath", f.getAbsolutePath());
         try {
             f.createNewFile();
@@ -279,15 +301,47 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
     }
 
     private void writeToFile(String data) {
+        File file = new File("config.txt");
+        boolean deleted = file.delete();
+        Log.e("file Delete or not", "" + deleted);
+
         try {
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(openFileOutput("config.txt", Context.MODE_PRIVATE));
             outputStreamWriter.write(data);
             outputStreamWriter.close();
+            Log.e("file write", "write");
         } catch (IOException e) {
             Log.e("Exception", "File write failed: " + e.toString());
         }
     }
 
+    public void clearApplicationData() {
+        File cache = getCacheDir();
+        File appDir = new File(cache.getParent());
+        if (appDir.exists()) {
+            String[] children = appDir.list();
+            for (String s : children) {
+                if (!s.equals("lib")) {
+                    deleteDir(new File(appDir, s));
+                    Log.i("TAG", "File /data/data/APP_PACKAGE/" + s + " DELETED");
+                }
+            }
+        }
+    }
+
+    public static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+
+        return dir.delete();
+    }
 
     private String readFromFile() {
 
@@ -308,6 +362,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
                 inputStream.close();
                 ret = stringBuilder.toString();
+                Log.e("file read", "read");
             }
         } catch (FileNotFoundException e) {
             Log.e("login activity", "File not found: " + e.toString());
@@ -316,5 +371,11 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
         }
 
         return ret;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mBroadcastReceiver.getDebugUnregister();
     }
 }
