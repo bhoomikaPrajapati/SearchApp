@@ -14,6 +14,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -177,6 +178,14 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
                     String app_name = (String) pm.getApplicationLabel(pm.getApplicationInfo(package_name, PackageManager.GET_META_DATA));
                    // Drawable app_drawable = resolve_info.activityInfo.loadIcon(this.getPackageManager());
                     Drawable app_drawable = resolve_info.activityInfo.loadIcon(getPackageManager());
+                    if(app_drawable==null)
+                    {
+                        app_drawable=pm.getApplicationIcon(getPackageName());
+                    }
+                    if (app_drawable==null)
+                    {
+                        app_drawable= ContextCompat.getDrawable(MainActivity.this,R.mipmap.ic_launcher);
+                    }
 
                     boolean same = false;
                     for (int i = 0; i < mAppListArrayList.size(); i++) {
@@ -215,7 +224,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
 
     private void createIconFile(Bitmap bitmap, String filename) {
         //create a file to write bitmap data
-        File f = new File(getCacheDir(), filename);
+        File f = new File(getCacheDir(), filename.replace("/",""));
         Log.e("filePath", f.getAbsolutePath());
         try {
             f.createNewFile();
@@ -231,6 +240,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener {
             fos.flush();
             fos.close();
         } catch (IOException e) {
+
             e.printStackTrace();
         }
 

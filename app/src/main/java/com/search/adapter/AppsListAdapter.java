@@ -61,7 +61,7 @@ public class AppsListAdapter extends BaseRecyclerAdapter<AppsListAdapter.DataVie
 */
 
         Bitmap bitmap = null;
-        File f = new File(context.getCacheDir()+"/"+appList.getApp_name());
+        File f = new File(context.getCacheDir()+"/"+appList.getApp_name().replace("/",""));
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         try {
