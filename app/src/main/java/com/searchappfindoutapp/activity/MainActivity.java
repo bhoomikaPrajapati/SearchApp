@@ -1,15 +1,13 @@
-package com.search.activity;
+package com.searchappfindoutapp.activity;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -29,12 +27,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.search.R;
-import com.search.adapter.AppsListAdapter;
-import com.search.customview.BaseRecyclerAdapter;
-import com.search.listener.ApplicationBroadcastService;
-import com.search.model.AppList;
-import com.search.model.AppListModel;
+
+import com.searchappfindoutapp.R;
+import com.searchappfindoutapp.adapter.AppsListAdapter;
+import com.searchappfindoutapp.customview.BaseRecyclerAdapter;
+import com.searchappfindoutapp.model.AppList;
+import com.searchappfindoutapp.model.AppListModel;
+
+
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package com.search.model;
+package com.searchappfindoutapp.model;
 
 import java.util.ArrayList;
 import java.util.List;

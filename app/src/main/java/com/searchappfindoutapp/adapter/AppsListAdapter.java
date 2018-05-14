@@ -1,28 +1,23 @@
-package com.search.adapter;
+package com.searchappfindoutapp.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.search.R;
-import com.search.activity.MainActivity;
-import com.search.customview.BaseRecyclerAdapter;
-import com.search.model.AppList;
 
-import java.io.BufferedReader;
+import com.searchappfindoutapp.R;
+import com.searchappfindoutapp.customview.BaseRecyclerAdapter;
+import com.searchappfindoutapp.model.AppList;
+
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.List;
 
 

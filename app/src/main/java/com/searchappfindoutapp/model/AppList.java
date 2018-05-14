@@ -1,7 +1,4 @@
-package com.search.model;
-
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
+package com.searchappfindoutapp.model;
 
 /**
  * Created by inx-android on 21/3/18.

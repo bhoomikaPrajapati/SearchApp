@@ -1,4 +1,4 @@
-package com.search;
+package com.searchappfindoutapp;
 
 import org.junit.Test;
 

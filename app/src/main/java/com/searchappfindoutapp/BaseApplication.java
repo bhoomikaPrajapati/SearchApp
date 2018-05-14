@@ -1,4 +1,4 @@
-package com.search;
+package com.searchappfindoutapp;
 
 import android.app.Application;
 import android.content.Context;

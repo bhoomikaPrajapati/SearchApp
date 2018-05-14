@@ -1,14 +1,13 @@
-package com.search.filedata;
+package com.searchappfindoutapp.filedata;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.Log;
 
 import com.google.gson.Gson;
 
-import com.search.model.AppListModel;
+import com.searchappfindoutapp.model.AppListModel;
 
 import java.io.BufferedWriter;
 import java.io.File;
